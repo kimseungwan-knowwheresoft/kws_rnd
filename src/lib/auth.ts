@@ -60,13 +60,17 @@ export const getServerSession = cache(async (_authOptions?: unknown): Promise<Rn
 
     if (!serviceRole) return null; // 정말 권한 없음
 
-    dbUser = await prisma.user.create({
-      data: {
+    // upsert로 생성 — 같은 사용자의 요청이 동시에 여러 번 들어와도(브라우저가 흔히 그럼)
+    // unique(email) 충돌로 죽지 않고 안전하게 기존 레코드를 그대로 반환한다.
+    dbUser = await prisma.user.upsert({
+      where: { email: supaUser.email },
+      create: {
         email: supaUser.email,
         name: (supaUser.user_metadata?.full_name as string | undefined) ?? supaUser.email.split('@')[0],
         role: toAppRole(serviceRole.role as string),
         authUserId: supaUser.id,
       },
+      update: {},
     });
   }
 
