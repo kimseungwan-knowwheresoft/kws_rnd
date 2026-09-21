@@ -1,11 +1,14 @@
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { getServerSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import LoginRedirect from './LoginRedirect';
+import LoginButton from './LoginButton';
 
 /**
  * kws_rnd는 자체 로그인 폼을 두지 않고 kws-auth로 위임한다(SSO).
  * kws-auth 로그인 성공 후 공유 세션 쿠키를 타고 여기로 돌아온다.
+ * 로그아웃 직후 등 미인증 상태에서 곧바로 다른 도메인으로 튕기면 어색해 보여서,
+ * 이 페이지 자체에서 버튼을 눌러야 kws-auth로 이동하도록 한다(자동 리다이렉트 아님).
  */
 export default async function LoginPage({
   searchParams,
@@ -36,10 +39,16 @@ export default async function LoginPage({
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-lowest py-12 px-4 absolute inset-0 z-50">
-      <div className="text-center space-y-3">
-        <p className="text-[14px] text-gray-500">로그인 페이지로 이동 중...</p>
+      <div className="max-w-md w-full space-y-8 bg-surface p-8 rounded-lg shadow-card border border-border">
+        <div>
+          <div className="flex justify-center">
+            <Image src="/logo.png" alt="KnowWhereSoft Logo" width={180} height={50} className="object-contain" priority />
+          </div>
+          <h2 className="mt-6 text-center text-[32px] font-bold text-primary">시스템 로그인</h2>
+          <p className="mt-2 text-center text-[14px] text-gray-500">사내 R&D 및 인력 통합 관리 시스템</p>
+        </div>
+        <LoginButton redirectTo={resolvedSearchParams.redirect} />
       </div>
-      <LoginRedirect redirectTo={resolvedSearchParams.redirect} />
     </div>
   );
 }
