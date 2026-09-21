@@ -1,10 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["rnd"]
 }
 
 model User {
@@ -12,6 +15,7 @@ model User {
   name            String?
   email           String?  @unique
   password        String?
+  authUserId      String?  @unique // kws-auth(Supabase Auth) 계정 id — SSO 로그인 시 이메일로 최초 연결됨
   failedLoginAttempts Int      @default(0) // 로그인 실패 횟수
   lockedUntil         DateTime? // 계정 잠금 해제 일시
   role            String   @default("RESEARCHER") // ADMIN, PM, HR, RESEARCHER
@@ -33,6 +37,8 @@ model User {
 
   assignments           ProjectAssignment[]
   monthlyParticipations MonthlyParticipation[]
+
+  @@schema("rnd")
 }
 
 model Project {
@@ -93,6 +99,8 @@ model Project {
   budgets               ProjectBudget[]
   evaluations           ProjectEvaluation[]
   intellectualProperties IntellectualProperty[]
+
+  @@schema("rnd")
 }
 
 model ProjectAssignment {
@@ -115,6 +123,7 @@ model ProjectAssignment {
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId])
+  @@schema("rnd")
 }
 
 model MonthlyParticipation {
@@ -129,6 +138,7 @@ model MonthlyParticipation {
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId, yearMonth])
+  @@schema("rnd")
 }
 
 model ProjectBudget {
@@ -150,6 +160,8 @@ model ProjectBudget {
   itemsDetail String?  // JSON serialized array of sub-items (세목): date, itemName, unitPrice, quantity, amount, fundingType, note
 
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@schema("rnd")
 }
 
 model ProjectEvaluation {
@@ -161,6 +173,8 @@ model ProjectEvaluation {
   date        DateTime?
 
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@schema("rnd")
 }
 
 model IntellectualProperty {
@@ -179,4 +193,6 @@ model IntellectualProperty {
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@schema("rnd")
 }

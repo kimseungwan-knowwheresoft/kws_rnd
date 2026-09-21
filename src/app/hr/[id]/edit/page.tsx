@@ -1,9 +1,8 @@
 import prisma from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions, getServerSession } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { updateUser, updatePassword, deleteUser } from '@/app/actions';
+import { updateUser, deleteUser } from '@/app/actions';
 import ConfirmDeleteButton from '@/components/ConfirmDeleteButton';
 import HRUserForm from '@/components/HRUserForm';
 

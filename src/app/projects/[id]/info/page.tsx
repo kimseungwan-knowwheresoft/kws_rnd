@@ -1,6 +1,5 @@
 import prisma from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions, getServerSession } from '@/lib/auth';
 import { notFound } from 'next/navigation';
 import { deleteProject, assignMember, createProjectEvaluation, deleteEvaluation } from '@/app/actions';
 import ConfirmDeleteButton from '@/components/ConfirmDeleteButton';

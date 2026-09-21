@@ -1,6 +1,5 @@
 import prisma from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions, getServerSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import SettlementOverviewTable, { SettlementProject } from '@/components/SettlementOverviewTable';

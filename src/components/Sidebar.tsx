@@ -1,6 +1,5 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -12,8 +11,7 @@ interface InProgressProject {
   status: string;
 }
 
-export default function Sidebar() {
-  const { status } = useSession();
+export default function Sidebar({ isAuthenticated }: { isAuthenticated: boolean }) {
   const pathname = usePathname();
   const [inProgressProjects, setInProgressProjects] = useState<InProgressProject[]>([]);
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
@@ -22,7 +20,7 @@ export default function Sidebar() {
   const [isSettlementMenuOpen, setIsSettlementMenuOpen] = useState(true);
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (isAuthenticated) {
       fetch('/api/projects/in-progress')
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => {
@@ -32,7 +30,7 @@ export default function Sidebar() {
         })
         .catch((err) => console.error('Error loading projects in sidebar:', err));
     }
-  }, [status, pathname]);
+  }, [isAuthenticated, pathname]);
 
   // Auto-expand current active project in sidebar
   useEffect(() => {
