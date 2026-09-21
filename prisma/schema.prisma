@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  name            String?
+  email           String?  @unique
+  password        String?
+  failedLoginAttempts Int      @default(0) // 로그인 실패 횟수
+  lockedUntil         DateTime? // 계정 잠금 해제 일시
+  role            String   @default("RESEARCHER") // ADMIN, PM, HR, RESEARCHER
+  joinDate        DateTime?
+  grossSalary     Float?   // 세전 연봉
+  fourInsurances  Float?   // 4대보험 부담금
+  
+  // Extended HR Info
+  nationality     String?  // 국적 (예: 대한민국)
+  affiliation     String?  // 소속기관
+  birthDateAndGender String? // 생년월일(성별)
+  degree          String?  // 최종학위
+  major           String?  // 전공
+  degreeYear      String?  // 학위 취득년도
+  researcherNumber String? // 과학기술인 등록번호
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  assignments           ProjectAssignment[]
+  monthlyParticipations MonthlyParticipation[]
+}
+
+model Project {
+  id                    String   @id @default(cuid())
+  // Basic info
+  title                 String   // 국문 연구개발과제명
+  titleEn               String?  // 영문 연구개발과제명
+  description           String?
+  status                String   @default("PLANNING")
+  budget                Float?   // Total budget placeholder (can be computed, but kept for legacy)
+  startDate             DateTime?
+  endDate               DateTime?
+
+  // Extended Document Fields
+  securityClass         String?  @default("일반") // 보안등급 (일반/보안)
+  centralAgency         String?  // 중앙행정기관명
+  specializedAgency     String?  // 전문기관명
+  programName           String?  // 사업명
+  subProgramName        String?  // 내역사업명
+  noticeNumber          String?  // 공고번호
+  masterProjectNumber   String?  // 총괄연구개발과제번호
+  projectNumber         String?  // 연구개발과제번호
+  selectionMethod       String?  // 선정방식 (지정공모, 품목공모 등)
+  scienceTechClass      String?  // 국가과학기술표준분류
+  ictClass              String?  // ICT기술분류
+  masterTitleKr         String?  // 총괄과제명 (국문)
+  masterTitleEn         String?  // 총괄과제명 (영문)
+
+  // Lead Agency details
+  leadAgency            String?  // 주관연구개발기관명
+  leadAgencyBizNo       String?  // 사업자등록번호
+  leadAgencyCorpNo      String?  // 법인등록번호
+  leadAgencyAddress     String?  // 주소
+  participatingAgencies String?  // 참여기관 (간이 저장용)
+  agencyContact         String?  // 기관 담당자 정보 (간이 저장용)
+
+  // PI (연구책임자) info
+  piName                String?
+  piTitle               String?
+  piPhone               String?
+  piMobile              String?
+  piEmail               String?
+  piNo                  String?  // 국가연구자번호
+
+  // Manager (실무담당자) info
+  managerName           String?
+  managerTitle          String?
+  managerPhone          String?
+  managerMobile         String?
+  managerEmail          String?
+  managerNo             String?
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  assignments           ProjectAssignment[]
+  monthlyParticipations MonthlyParticipation[]
+  budgets               ProjectBudget[]
+  evaluations           ProjectEvaluation[]
+  intellectualProperties IntellectualProperty[]
+}
+
+model ProjectAssignment {
+  id            String   @id @default(cuid())
+  userId        String
+  projectId     String
+  roleInProject String   @default("MEMBER") // PM, MEMBER
+
+  // Extended Participation Info
+  researchRole        String? // 연구담당분야 (예: 연구 총괄)
+  participationPeriod String? // 과제참여기간
+  newHireType         String? // 신규채용구분
+  flexibleWork        String? // 시간선택제 근무구분
+  thisProjectRate     Float?  // 본 과제 참여율 (%)
+  nationalRndRate     Float?  // 국가연구개발사업 참여율 (%)
+  totalRndProjects    Int?    // 참여 과제 수 (건)
+  fundingType         String?  @default("현금") // 인건비 집행구분: 현금 / 현물
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model MonthlyParticipation {
+  id          String   @id @default(cuid())
+  userId      String
+  projectId   String
+  yearMonth   String   // format: "YYYY-MM" (e.g., "2026-09")
+  rate        Float    // Participation rate (e.g., 40.50 for 40.5%)
+  fundingType String?  @default("현금") // 인건비 집행구분: 현금 / 현물
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId, yearMonth])
+}
+
+model ProjectBudget {
+  id          String   @id @default(cuid())
+  projectId   String
+  year        Int      // e.g., 2026, 2027
+  category    String   // 인건비, 연구장비비, 재료비, 활동비 등
+  
+  // Split amounts
+  govFunding  Float    @default(0) // 정부지원 연구개발비
+  instCash    Float    @default(0) // 기관부담 현금
+  instGoods   Float    @default(0) // 기관부담 현물
+  otherFunding Float   @default(0) // 지자체/기타
+  
+  // Computed fields (we'll calculate before save or in UI, but keep DB amount as fallback or total)
+  amount      Float    // 합계 (Total)
+  spentAmount Float    @default(0) // 현재까지 집행된 금액
+
+  itemsDetail String?  // JSON serialized array of sub-items (세목): date, itemName, unitPrice, quantity, amount, fundingType, note
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ProjectEvaluation {
+  id          String   @id @default(cuid())
+  projectId   String
+  type        String   // PATENT, TECH_FEE, PAPER 등
+  description String   // 특허명, 기술료 내용 등
+  status      String   @default("PENDING") // PENDING, COMPLETED
+  date        DateTime?
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model IntellectualProperty {
+  id               String   @id @default(cuid())
+  type             String   // 특허, 기술문서, GS인증, 논문, 기술료, SW등록 등
+  title            String   // 명칭
+  registrationNo   String?  // 등록번호/출원번호
+  registrationDate DateTime? // 등록일/취득일
+  inventor         String?  // 발명자/저자
+  status           String?  // 현재 상태
+  description      String?  // 상세 설명 및 비고
+  attachmentPath   String?  // 첨부사본 파일 경로 또는 증빙 문서 보관 위치
+  
+  projectId        String?  // 연관된 연구개발과제 (선택)
+  project          Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

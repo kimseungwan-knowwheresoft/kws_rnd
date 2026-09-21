@@ -1,49 +1,125 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface-lowest text-primary antialiased;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-primary font-bold;
+    font-family: 'Pretendard', sans-serif;
+  }
+
+  /* ── Global Form Controls: Input / Select / Textarea ── */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select,
+  textarea {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    @apply w-full rounded-lg border border-border bg-surface text-[14px] text-primary placeholder-gray-400
+           px-3 py-2.5 transition-all duration-150 outline-none shadow-none;
+    /* subtle inset shadow to add depth */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):focus,
+  select:focus,
+  textarea:focus {
+    @apply border-secondary;
+    box-shadow: 0 0 0 3px rgba(0, 183, 215, 0.15), inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):hover:not(:focus),
+  select:hover:not(:focus),
+  textarea:hover:not(:focus) {
+    @apply border-gray-400;
+  }
+
+  input[type="date"],
+  input[type="month"] {
+    font-family: 'Pretendard', monospace, sans-serif;
+    @apply text-gray-700;
+  }
+
+  select {
+    @apply cursor-pointer pr-9;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2309090b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+  }
+
+  select:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300b7d7' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  textarea {
+    @apply resize-y min-h-[80px];
+  }
+
+  /* label typography */
+  label {
+    font-family: 'Pretendard', sans-serif;
+    @apply text-[13px] font-semibold text-gray-600 block mb-1.5;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 }
 
-html {
-  height: 100%;
+
+@layer components {
+  .btn {
+    @apply inline-flex justify-center items-center h-10 px-6 border border-transparent shadow-sm text-[14px] font-medium rounded-2xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-hover focus:ring-primary;
+  }
+  .btn-secondary {
+    @apply bg-transparent text-primary border-border hover:bg-surface-hover focus:ring-border;
+  }
+  .glass-panel {
+    @apply bg-surface rounded-lg shadow-card border border-border overflow-hidden;
+  }
+  .input-group input, .input-group select, .input-group textarea {
+    @apply w-full rounded-lg border border-border shadow-sm focus:border-primary focus:shadow-input-focus focus:ring-0 sm:text-[14px] p-2 transition-all duration-150;
+  }
+  .input-group label {
+    @apply block text-[14px] font-medium text-primary mb-1;
+  }
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-[12px] font-medium;
+  }
+  .badge-success {
+    @apply bg-[#e6f8fb] text-secondary;
+  }
+  .badge-danger {
+    @apply bg-[#ffe9ee] text-tertiary;
+  }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@media print {
+  aside, header, .print\:hidden {
+    display: none !important;
+  }
+  body, main {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .glass-panel {
+    box-shadow: none !important;
+    border: none !important;
   }
 }
